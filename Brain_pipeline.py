@@ -25,7 +25,7 @@ class Pipeline(object):
             
     '''
     
-    def __init__(self, path_train, path_test = '' ):
+    def __init__(self, path_train = '', path_test = '' ):
         self.path_train = path_train
         self.path_test = path_test
         self.scans_train, self.scans_test, self.train_im, self.test_im = self.read_scans()
@@ -140,7 +140,7 @@ class Pipeline(object):
         
         patches, labels = [], []
         for idx in xrange(classes):
-            p, l = self.find_training_patches(num_patches, idx, d, h, w)
+            p, l = self.sample_training_patches(num_patches, idx, d, h, w)
             patches.append(p)
             labels.append(l)
         return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes)
