@@ -17,88 +17,32 @@ from sklearn.feature_extraction.image import extract_patches_2d
 from skimage import color
 
 class Pipeline(object):
-    ''' The Pipeline for loading images for all patients and all modalities, and preprocessing the images by:
-        1) N4ITK bias correction   --DONE!
-        2) Intensity normalization by Nyúl et al.  --DONE!
+    ''' The Pipeline for loading images for all patients and all modalities
+        1)find_training_patches: finds the training patches for a particular class
         
         INPUT: 
-            1) The filepath 'path': Directory of the image database. It's subfolders contain the following .mha files:
-            flair, t1, t1c, t2, and the ground truth(ground) MRI of all patients
+            1) The filepath 'path': Directory of the image database. It contains the slices of training image slices
             
     '''
     
-    def __init__(self, path, n4 = 1, nyul = 1):
-        self.path = path
-        self.modes = ['flair', 't1', 't1c', 't2', 'ground']
-        self.pathnames, self.gt_im, self.train_im = self.read_scans(n4, nyul)
-
-    def read_scans(self,n4, nyul):
-        if n4 == 1:
-            flair = [flp for flp in glob(self.path + '*/*Flair*/*.mha') if 'n4' not in flp]
-            t1 = [flp for flp in glob(self.path + '*/*T1[!c]*/*.mha') if 'n4' not in flp]
-            t1c = [flp for flp in glob(self.path + '*/*T1c*/*.mha') if 'n4' not in flp]
-            t2 = [flp for flp in glob(self.path + '*/*T2*/*.mha') if 'n4' not in flp]
-            ground = [flp for flp in glob(self.path + '*/*more*/*.mha') if 'n4' not in flp]
-            scans = [flair, t1, t1c, t2, ground]
-            
-            #scans has all the file pathnames stored. instead of loading all images in an array, let's do it one by one 
-            #for N4 bias reduction atleast
-            print('->Applying N4 Bias Correction...')
-            for idx in xrange(4):
-                for pat_nm in xrange(len(scans[idx])):
-                    print 'patient directory {}; modality {}'.format(pat_nm, idx)
-                    if os.path.exists( os.path.splitext(scans[idx][pat_nm])[0] + '_n4.mha'):
-                        continue
-                    tmp = sitk.ReadImage(scans[idx][pat_nm])
-                    tmp = self.n4itk(tmp)       ##  Apply N4Bias Field Correction on all modalities
-                    scans[idx][pat_nm] = os.path.splitext(scans[idx][pat_nm])[0] + '_n4.mha' #new pathname
-                    sitk.WriteImage(tmp, scans[idx][pat_nm])
-        else:
-            flair = [flp for flp in glob(self.path + '*/*Flair*/*.mha') if 'n4.mha' in flp]
-            t1 = [flp for flp in glob(self.path + '*/*T1[!c]*/*.mha') if 'n4.mha' in flp]
-            t1c = [flp for flp in glob(self.path + '*/*T1c*/*.mha') if 'n4.mha' in flp]
-            t2 = [flp for flp in glob(self.path + '*/*T2*/*.mha') if 'n4.mha' in flp]
-            ground = [flp for flp in glob(self.path + '*/*more*/*.mha') if 'n4' not in flp]
-            scans = [flair, t1, t1c, t2, ground]
-
-        if nyul == 1:            
-            print('->Applying Intensity Normalization...')
-            for idx in xrange(4):
-                im_arr = [sitk.GetArrayFromImage(sitk.ReadImage(f)) for f in scans[idx]]    #load all images as arrays
-                im_msk = [i>0 for i in im_arr]  #image masks
-                normalizer = IntensityRangeStandardization()
-                ret, out = normalizer.train_transform([i[m] for i, m in zip(im_arr, im_msk)])   #   Apply the Nyul Intensity Normaliztion on all modalities and standardize the image histograms
-                for i, m, o, cnt in zip(im_arr, im_msk, out, xrange(len(scans[idx]))):
-                    i[m] = o # redefine the 3D array of an image using output and mask
-                    scans[idx][cnt] = scans[idx][cnt]+'_processed.mha'
-                    print ('Processing applied: ' + cnt) 
-                    sitk.WriteImage(sitk.GetImageFromArray(i), scans[idx][cnt])
-        else:
-            flair = [flp for flp in glob(self.path + '*/*Flair*/*.mha') if '.mha_processed' in flp]
-            t1 = [flp for flp in glob(self.path + '*/*T1[!c]*/*.mha') if '.mha_processed' in flp]
-            t1c = [flp for flp in glob(self.path + '*/*T1c*/*.mha') if '.mha_processed' in flp]
-            t2 = [flp for flp in glob(self.path + '*/*T2*/*.mha') if '.mha_processed' in flp]
-            ground = [flp for flp in glob(self.path + '*/*more*/*.mha') if 'n4' not in flp]
-            scans = [flair, t1, t1c, t2, ground]
+    def __init__(self, path_train, path_test = '' ):
+        self.path_train = path_train
+        self.path_test = path_test
+        self.scans_train, self.scans_test, self.train_im, self.test_im = self.read_scans()
         
-        #split pathnames for using in training - testing, in 67:33 ratio
-        scans = np.array(scans)
-        indices = np.random.permutation(scans.shape[1])
-        train_idx = indices[:(scans.shape[1]*2)/3]
-        test_idx = indices[(scans.shape[1]*2)/3:]
-        self.pathnames_train = scans[:, train_idx]
-        self.pathnames_test = scans[:, test_idx]
-    
-        gt_im = [sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in self.pathnames_train[4]]
-        train_im = []
-        for i in xrange(4):
-            train_im.append([sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in self.pathnames_train[i]])
-        return scans, np.array(gt_im), np.array(train_im)
+        
+    def read_scans(self):
+       
+        scans_train = glob(self.path_train + r'/*.mha')
+        scans_test = glob(self.path_test + r'/*.mha')
+        train_im = [sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in scans_train]
+        test_im = [sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in scans_test]
+        return scans_train, scans_test, np.array(train_im), np.array(test_im)
     
     
     def n4itk(self, img):
         img = sitk.Cast(img, sitk.sitkFloat32)
-        img_mask = sitk.Cast(img, sitk.sitkUInt8)   ## Create a mask spanning the part containing the brain, as we want to apply the filter to the brain image
+        img_mask = sitk.BinaryNot(sitk.BinaryThreshold(img, 0, 0))   ## Create a mask spanning the part containing the brain, as we want to apply the filter to the brain image
         corrected_img = sitk.N4BiasFieldCorrection(img, img_mask)
         return corrected_img
     
@@ -112,7 +56,7 @@ class Pipeline(object):
         for i in xrange(classes):
             mn = min(mn, len(np.argwhere(im_ar[i]==i)))
     '''
-    def find_training_patches(self, num_patches, class_nm, d = 4, h = 33, w = 33):
+    def sample_training_patches(self, num_patches, class_nm, d = 4, h = 33, w = 33):
         ''' Creates the input patches and their labels for training CNN. The patches are 4x33x33
         and the label for a patch equals to the label for the central pixel of the patch.
         
@@ -135,32 +79,37 @@ class Pipeline(object):
         patches, labels = [], np.full(num_patches, fill_value = class_nm,  dtype = 'float')
         count = 0
         # convert gt_im to 1D and save shape
-        tmp_shp = self.gt_im.shape
-        self.gt_im = self.gt_im.reshape(-1)
+        gt_im = np.swapaxes(self.train_im, 0, 1)[4]
+        tmp_shp = gt_im.shape
+        gt_im = gt_im.reshape(-1)
         # maintain list of 1D indices where label = class_nm
-        indices = np.argwhere(self.gt_im == class_nm).reshape(-1)
+        indices = np.argwhere(gt_im == class_nm)
+        # shuffle the list of indices of the class
+        st = timeit.default_timer()
+        indices = np.random.shuffle(indices)
+        print 'shuffling of label {} took :'.format(class_nm), timeit.default_timer()-st
         #reshape gt_im
-        self.gt_im = self.gt_im.reshape(tmp_shp)
+        gt_im = gt_im.reshape(tmp_shp)
         st = timeit.default_timer()
         #find the patches from the images
+        i = 0
         while count<num_patches:
             #print (count, ' cl:' ,class_nm)
             #sys.stdout.flush()
             #randomly choose an index
-            ind = random.choice(indices)
+            ind = indices[i]
+            i+= 1
             #reshape ind to 3D index
             ind = np.unravel_index(ind, tmp_shp)
             #print ind
             #sys.stdout.flush()
-            #patient directory to choose image from 
-            pat_idx = ind[0]
             #find the slice index to choose from
-            slice_idx = ind[1]
+            slice_idx = ind[0]
             #load the slice from the label
-            l = self.gt_im[pat_idx][slice_idx]
+            l = gt_im[slice_idx]
            
             # the centre pixel and its coordinates
-            p = ind[2:]
+            p = ind[1:]
             #construct the patch by defining the coordinates
             p_x = (p[0] - h/2, p[0] + (h+1)/2)
             p_y = (p[1] - w/2, p[1] + (w+1)/2)
@@ -168,10 +117,7 @@ class Pipeline(object):
             if p_x[0]<0 or p_x[1]>l.shape[0] or p_y[0]<0 or p_y[1]>l.shape[1]:
                 continue
             #take patches from all modalities and group them together
-            tmp = []
-            for idx in xrange(d):
-                tmp.append(self.train_im[idx][pat_idx][slice_idx][p_x[0]:p_x[1], p_y[0]:p_y[1]])   #take the patch array from the image array
-            tmp = np.array(tmp)
+            tmp = self.train_im[slice_idx][0:4, p_x[0]:p_x[1], p_y[0]:p_y[1]]
             patches.append(tmp)
             count+=1
         print 'finding patches of label {} took :'.format(class_nm), timeit.default_timer()-st
@@ -180,7 +126,7 @@ class Pipeline(object):
 
     def training_patches(self, num_patches, classes = 5, d = 4, h = 33, w = 33):
         '''Creates the input patches and their labels for training CNN. The patches are 4x33x33
-    and the label for a patch corresponds to the label for the central pixel of the patch. The 
+    and the label for a patch corresponds to the label for the central voxel of the patch. The 
     data will be balanced, with the number of patches being the same for each class
             
             INPUT:
@@ -215,7 +161,7 @@ def test_patches(img ,d = 4, h = 33, w = 33):
         plist = extract_patches_2d(i, (h, w))
         p.append(np.array(plist))
     
-    return zip(*np.array(p))
+    return np.array(p).swapaxes(0, 1)
 
 def reconstruct_labels(pred_list):
     pred = np.array(pred_list).reshape(208, 208)
