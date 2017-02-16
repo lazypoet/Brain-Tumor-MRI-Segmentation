@@ -149,7 +149,7 @@ def test_patches(img ,d = 4, h = 33, w = 33):
     ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
     
             INPUT:
-                    1)img: a 4D array containing the all modalities of a 2D image. 
+                    1)img: a 3D array containing the all modalities of a 2D image. 
                     2)d, h, w: see above
             OUTPUT:
                     tst_arr: ndarray of all patches of all modalities. Of the form number of patches x modalities

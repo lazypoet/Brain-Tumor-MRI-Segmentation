@@ -36,10 +36,10 @@ def show_segmented_image(orig_img, pred_img):
         segmented image rendering
     '''
     #define the colours of the labels
-    red = [1, 0.2, 0.2] #label 1
-    yellow = [1, 1, 0.25] #label 2
-    green = [0.35, 0.75, 0.25]  #label 3
-    blue = [0, 0, 1] #label 4
+    red = [10, 0, 0] #label 1
+    yellow = [10, 10, 0] #label 2
+    green = [0, 10, 0]  #label 3
+    blue = [0, 0, 10] #label 4
     #convert original image to rgb
     gray_im = color.gray2rgb(orig_img)
     #color the tumor voxels
