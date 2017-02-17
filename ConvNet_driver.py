@@ -61,11 +61,12 @@ def step_decay(epochs):
     print 'lrate: {}'.format(lrate)
     return lrate
 
-pth = 'D:\New folder\BRATS2015_Training\HGG\\'
-x = Pipeline(pth, n4 =0, nyul = 0)   #pass the images through the preprocessing steps
+pth_train = 'D:/New folder/BRATS2015_Training/train_slices/'
+pth_test = 'D:/New folder/BRATS2015_Training/test_slices/'
+x = Pipeline(pth_train, pth_test)   #pass the images through the preprocessing steps
 
 #build the model
-model = LeNet.build(33, 33, 4, 5)   
+model = LeNet.build_Pereira(33, 33, 4, 5)   
 
 #callback
 change_lr = LearningRateScheduler(step_decay)
@@ -82,12 +83,13 @@ Y_labels = np_utils.to_categorical(Y_labels, 5)
 
 
 #save model after each epoch
-checkpointer = ModelCheckpoint(filepath='D:/weights.{epoch:02d}-{val_loss:.2f}.hdf5',monitor = 'val_loss', verbose=1)
+os.mkdir(r'D:\New folder\Pereira_model_checkpoints')
+checkpointer = ModelCheckpoint(filepath='D:/New folder/Pereira_model_checkpoints/weights.{epoch:02d}-{val_loss:.2f}.hdf5',monitor = 'val_loss', verbose=1)
 #fit model and shuffle training data
 model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, shuffle=True, validation_split=0.01, callbacks = [change_lr, checkpointer])
  
 #save model
-sv_pth = 'D:/New Folder/train_120000_25epoch_HGG'
+sv_pth = 'D:/New Folder/Pereira_model_checkpoints/model_weights'
 m = '{}.json'.format(sv_pth)
 w = '{}.hdf5'.format(sv_pth)
 model.save_weights(w)

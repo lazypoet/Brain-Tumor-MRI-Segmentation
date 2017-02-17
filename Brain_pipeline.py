@@ -86,14 +86,14 @@ class Pipeline(object):
         indices = np.argwhere(gt_im == class_nm)
         # shuffle the list of indices of the class
         st = timeit.default_timer()
-        indices = np.random.shuffle(indices)
+        np.random.shuffle(indices)
         print 'shuffling of label {} took :'.format(class_nm), timeit.default_timer()-st
         #reshape gt_im
         gt_im = gt_im.reshape(tmp_shp)
         st = timeit.default_timer()
         #find the patches from the images
         i = 0
-        while count<num_patches:
+        while (count<num_patches) and (len(indices)>i):
             #print (count, ' cl:' ,class_nm)
             #sys.stdout.flush()
             #randomly choose an index
@@ -145,23 +145,24 @@ class Pipeline(object):
             labels.append(l)
         return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes)
      
-def test_patches(img ,d = 4, h = 33, w = 33):
-    ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
+    def test_patches(img ,d = 4, h = 33, w = 33):
+        ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
+        
+                INPUT:
+                        1)img: a 3D array containing the all modalities of a 2D image. 
+                        2)d, h, w: see above
+                OUTPUT:
+                        tst_arr: ndarray of all patches of all modalities. Of the form number of patches x modalities
+        '''
+        
+        #list of patches
+        p = []
+        for i in img:
+            plist = extract_patches_2d(i, (h, w))
+            p.append(np.array(plist))
+        
+        return np.array(p).swapaxes(0, 1)
     
-            INPUT:
-                    1)img: a 3D array containing the all modalities of a 2D image. 
-                    2)d, h, w: see above
-            OUTPUT:
-                    tst_arr: ndarray of all patches of all modalities. Of the form number of patches x modalities
-    '''
-    
-    #list of patches
-    p = []
-    for i in img:
-        plist = extract_patches_2d(i, (h, w))
-        p.append(np.array(plist))
-    
-    return np.array(p).swapaxes(0, 1)
 
 def reconstruct_labels(pred_list):
     pred = np.array(pred_list).reshape(208, 208)

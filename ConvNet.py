@@ -21,7 +21,7 @@ from keras import backend as K
 
 class LeNet:
     @staticmethod
-    def build(w, h, d, classes, weightsPath = None, alp = 0.3, dropout = 0.1):
+    def build_Pereira(w, h, d, classes, weightsPath = None, alp = 0.3, dropout = 0.1):
         '''INPUT:
                 INPUT WIDTH, HEIGHT, DEPTH, NUMBER OF OUTPUT CLASSES, PRELOADED WEIGHTS, PARAMETER FOR LEAKYReLU, DROPOUT PROBABILITY
            OUTPUT:
