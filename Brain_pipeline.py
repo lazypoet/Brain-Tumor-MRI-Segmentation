@@ -79,11 +79,11 @@ class Pipeline(object):
         patches, labels = [], np.full(num_patches, fill_value = class_nm,  dtype = 'float')
         count = 0
         # convert gt_im to 1D and save shape
-        gt_im = np.swapaxes(self.train_im, 0, 1)[4]
+        gt_im = np.swapaxes(self.train_im, 0, 1)[4]   #swap axes to make axis 0 represent the modality and axis 1 represent the slice. take the ground truth
         tmp_shp = gt_im.shape
         gt_im = gt_im.reshape(-1)
         # maintain list of 1D indices where label = class_nm
-        indices = np.argwhere(gt_im == class_nm)
+        indices = np.squeeze(np.argwhere(gt_im == class_nm))
         # shuffle the list of indices of the class
         st = timeit.default_timer()
         np.random.shuffle(indices)
@@ -93,7 +93,8 @@ class Pipeline(object):
         st = timeit.default_timer()
         #find the patches from the images
         i = 0
-        while (count<num_patches) and (len(indices)>i):
+        pix = len(indices)
+        while (count<num_patches) and (pix>i):
             #print (count, ' cl:' ,class_nm)
             #sys.stdout.flush()
             #randomly choose an index
