@@ -12,11 +12,12 @@ import Metrics
 def predict_labels(test_images, model):
     '''
     INPUT: a numpy array of 4x240x240 elements and a keras model already trained over various images
-    OUTPUT: a numpy array of 240x240 label elemets
+    OUTPUT: a numpy array of 240x240 label elements
     '''
     predicted_images = []   # list to maintain predicted labels
     for i in test_images:
         patches = Brain_pipeline.test_patches(i)
+        print "running..."
         predicted_slice = model.predict_classes(patches)
         predicted_slice = Brain_pipeline.reconstruct_labels(predicted_slice)
         predicted_images.append(predicted_slice)
