@@ -19,6 +19,7 @@ from Brain_pipeline import Pipeline
 import Brain_pipeline
 import Metrics
 from glob import glob
+import model_test
 
 ''' Script to drive loading, training, testing and saving the brain MRI
     First, we load all the images, and process them through the Pipeline,
@@ -96,8 +97,18 @@ model.save_weights(w)
 json_strng = model.to_json()
 with open(m, 'w') as f:
     json.dump(json_strng, f)
+    
 
-test_pths = zip(*x.pathnames_test)
+#test all the test image slices
+test_im = x.test_im.swapaxes(0,1)
+gt = test_im[:4]
+test_im = test_im[4]
+predicted_images, DSC, acc, DSC_core, PPV = model_test.test_slices(test_im, gt, model)
+
+
+
+
+'''test_pths = zip(*x.pathnames_test)
 #show a segmented slice
 tst = test_pths[0]#random.choice(test_pths)
 test_arr = [sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in tst]
@@ -150,4 +161,4 @@ for i in xrange(len(test_pths)):
     pred_pth.append(final_pth)
     pred_arr.append(pred)
     t1c_pth.append([flp for flp in glob(os.path.dirname(tst[2]) + '/*.mha') if 'n4' not in flp])
-               
+               '''
