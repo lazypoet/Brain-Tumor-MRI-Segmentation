@@ -101,8 +101,8 @@ with open(m, 'w') as f:
 
 #test all the test image slices
 test_im = x.test_im.swapaxes(0,1)
-gt = test_im[:4]
-test_im = test_im[4]
+gt = test_im[4]
+test_im = test_im[:4]
 predicted_images, DSC, acc, DSC_core, PPV = model_test.test_slices(test_im, gt, model)
 
 

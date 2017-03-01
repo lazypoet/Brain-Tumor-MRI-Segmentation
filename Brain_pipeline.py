@@ -146,23 +146,23 @@ class Pipeline(object):
             labels.append(l)
         return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes)
      
-    def test_patches(img ,d = 4, h = 33, w = 33):
-        ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
-        
-                INPUT:
-                        1)img: a 3D array containing the all modalities of a 2D image. 
-                        2)d, h, w: see above
-                OUTPUT:
-                        tst_arr: ndarray of all patches of all modalities. Of the form number of patches x modalities
-        '''
-        
-        #list of patches
-        p = []
-        for i in img:
-            plist = extract_patches_2d(i, (h, w))
-            p.append(np.array(plist))
-        
-        return np.array(p).swapaxes(0, 1)
+def test_patches(img ,d = 4, h = 33, w = 33):
+    ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
+    
+            INPUT:
+                    1)img: a 3D array containing the all modalities of a 2D image. 
+                    2)d, h, w: see above
+            OUTPUT:
+                    tst_arr: ndarray of all patches of all modalities. Of the form number of patches x modalities
+    '''
+    
+    #list of patches
+    p = []
+    for i in img:
+        plist = extract_patches_2d(i, (h, w))
+        p.append(np.array(plist))
+    
+    return np.array(p).swapaxes(0, 1)
     
 
 def reconstruct_labels(pred_list):
