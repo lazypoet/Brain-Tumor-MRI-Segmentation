@@ -80,10 +80,12 @@ class Pipeline(object):
         count = 0
         # convert gt_im to 1D and save shape
         gt_im = np.swapaxes(self.train_im, 0, 1)[4]   #swap axes to make axis 0 represent the modality and axis 1 represent the slice. take the ground truth
+        #take flair image as mask
+        msk = np.swapaxes(self.train_im, 0, 1)[0]
         tmp_shp = gt_im.shape
         gt_im = gt_im.reshape(-1)
         # maintain list of 1D indices where label = class_nm
-        indices = np.squeeze(np.argwhere(gt_im == class_nm))
+        indices = np.squeeze(np.argwhere((gt_im == class_nm) and (msk != 0.)))
         # shuffle the list of indices of the class
         st = timeit.default_timer()
         np.random.shuffle(indices)
@@ -158,6 +160,8 @@ def test_patches(img ,d = 4, h = 33, w = 33):
     
     #list of patches
     p = []
+    #only take patches with brain mask!=0
+
     for i in img:
         plist = extract_patches_2d(i, (h, w))
         p.append(np.array(plist))
