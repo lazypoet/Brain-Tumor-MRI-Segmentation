@@ -29,10 +29,7 @@ class LeNet:
                 '''
         K.set_image_dim_ordering('th')
         model = Sequential()
-        
-        # normalize the patches of each modality to have zero mean and unit variance
-        model.add(BatchNormalization(mode=0, axis=1, input_shape=(d, h, w)))
-        
+                
         #first set of CONV => CONV => CONV => LReLU => MAXPOOL
         model.add(Convolution2D(64, 3, 3, border_mode="same", input_shape = (d, h, w)))
         model.add(LeakyReLU(alpha=alp))

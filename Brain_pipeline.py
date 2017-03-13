@@ -124,7 +124,11 @@ class Pipeline(object):
             patches.append(tmp)
             count+=1
         print 'finding patches of label {} took :'.format(class_nm), timeit.default_timer()-st
-        return np.array(patches), labels
+        patches = np.array(patches)
+        avg = np.mean(patches)
+        std = np.std(patches)
+        patches = (patches - avg)/std
+        return patches, labels, avg, std
         
 
     def training_patches(self, num_patches, classes = 5, d = 4, h = 33, w = 33):
@@ -141,12 +145,14 @@ class Pipeline(object):
                     2) all_labels : numpy array of the all_patches labels
         '''
         
-        patches, labels = [], []
+        patches, labels, mu, sigma = [], [], [], []
         for idx in xrange(classes):
-            p, l = self.sample_training_patches(num_patches, idx, d, h, w)
+            p, l, avg, std = self.sample_training_patches(num_patches, idx, d, h, w)
             patches.append(p)
             labels.append(l)
-        return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes)
+            mu.append(avg)
+            sigma.append(std)
+        return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes), np.array(mu), np.array(sigma)
      
 def test_patches(img ,d = 4, h = 33, w = 33):
     ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.

@@ -6,6 +6,7 @@ Created on Wed Mar 01 17:08:10 2017
 """
 import Brain_pipeline
 import Metrics
+import numpy as np
 
 #For testing a model
 
