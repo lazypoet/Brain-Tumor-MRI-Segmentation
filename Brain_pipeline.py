@@ -166,15 +166,14 @@ def test_patches(img ,d = 4, h = 33, w = 33):
     
     #list of patches
     p = []
-    #only take patches with brain mask!=0
-
+    msk = img[0]!=0   #mask using FLAIR channel
+    msk = msk[h/2:-(h/2), w/2:(-w/2)]      #crop the mask to conform to the rebuilt image after prediction
     for i in img:
         plist = extract_patches_2d(i, (h, w))
-        p.append(np.array(plist))
-    
+        p.append(plist[msk])              #only take patches with brain mask!=0  
     return np.array(p).swapaxes(0, 1)
     
 
-def reconstruct_labels(pred_list):
-    pred = np.array(pred_list).reshape(208, 208)
-    return np.pad(pred, (16, 16),  mode='edge')    
+def reconstruct_labels(im, msk, pred_list):
+    im[msk] = np.array(pred_list)
+    return im    
