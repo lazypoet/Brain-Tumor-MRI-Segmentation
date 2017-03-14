@@ -78,7 +78,7 @@ model.compile(loss = 'categorical_crossentropy', optimizer=opt, metrics = ['accu
 
 
 #load training patches
-X_patches, Y_labels = x.training_patches(120000)    
+X_patches, Y_labels, mu, sigma = x.training_patches(120000)    
 # Labels should be in categorical array form 1x5
 Y_labels = np_utils.to_categorical(Y_labels, 5)
 
@@ -103,7 +103,7 @@ with open(m, 'w') as f:
 test_im = x.test_im.swapaxes(0,1)
 gt = test_im[4]
 test_im = test_im[:4].swapaxes(0, 1)
-predicted_images, DSC, acc, DSC_core, PPV = model_test.test_slices(test_im, gt, model)
+predicted_images, DSC, acc, DSC_core, PPV = model_test.test_slices(test_im, gt, model, mu, sigma)
 
 
 

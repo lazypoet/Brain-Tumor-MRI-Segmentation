@@ -154,7 +154,7 @@ class Pipeline(object):
             sigma.append(std)
         return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes), np.array(mu), np.array(sigma)
      
-def test_patches(img ,d = 4, h = 33, w = 33):
+def test_patches(img , mu = 0, sigma = 1, d = 4, h = 33, w = 33):
     ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
     
             INPUT:
@@ -168,8 +168,9 @@ def test_patches(img ,d = 4, h = 33, w = 33):
     p = []
     msk = img[0]!=0   #mask using FLAIR channel
     msk = msk[h/2:-(h/2), w/2:(-w/2)]      #crop the mask to conform to the rebuilt image after prediction
-    for i in img:
-        plist = extract_patches_2d(i, (h, w))
+    for i in xrange(len(img)):
+        img[i] = (img[i] - mu[i])/sigma[i]
+        plist = extract_patches_2d(img[i], (h, w))
         p.append(plist[msk])              #only take patches with brain mask!=0  
     return np.array(p).swapaxes(0, 1)
     
