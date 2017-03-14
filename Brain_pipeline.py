@@ -84,8 +84,9 @@ class Pipeline(object):
         msk = np.swapaxes(self.train_im, 0, 1)[0]
         tmp_shp = gt_im.shape
         gt_im = gt_im.reshape(-1)
+        msk = msk.reshape(-1)
         # maintain list of 1D indices where label = class_nm
-        indices = np.squeeze(np.argwhere((gt_im == class_nm) and (msk != 0.)))
+        indices = np.squeeze(np.argwhere((gt_im == class_nm) & (msk != 0.)))
         # shuffle the list of indices of the class
         st = timeit.default_timer()
         np.random.shuffle(indices)
@@ -125,10 +126,7 @@ class Pipeline(object):
             count+=1
         print 'finding patches of label {} took :'.format(class_nm), timeit.default_timer()-st
         patches = np.array(patches)
-        avg = np.mean(patches)
-        std = np.std(patches)
-        patches = (patches - avg)/std
-        return patches, labels, avg, std
+        return patches, labels
         
 
     def training_patches(self, num_patches, classes = 5, d = 4, h = 33, w = 33):
@@ -147,12 +145,19 @@ class Pipeline(object):
         
         patches, labels, mu, sigma = [], [], [], []
         for idx in xrange(classes):
-            p, l, avg, std = self.sample_training_patches(num_patches, idx, d, h, w)
+            p, l = self.sample_training_patches(num_patches, idx, d, h, w)
             patches.append(p)
             labels.append(l)
+        patches = np.array(patches).reshape(num_patches*classes, d, h, w) 
+        patches_by_channel = np.swapaxes(patches, 0, 1)
+        for seq, i in zip(patches_by_channel, xrange(d)):
+            avg = np.mean(seq, dtype = float64)
+            std = np.std(seq, dtype = float64)
+            patches_by_channel[i] = (patches_by_channel[i] - avg)/std
             mu.append(avg)
             sigma.append(std)
-        return np.array(patches).reshape(num_patches*classes, d, h, w), np.array(labels).reshape(num_patches*classes), np.array(mu), np.array(sigma)
+        patches = np.swapaxes(patches_by_channel, 0, 1)
+        return patches, np.array(labels).reshape(num_patches*classes), np.array(mu), np.array(sigma)
      
 def test_patches(img , mu = 0, sigma = 1, d = 4, h = 33, w = 33):
     ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
