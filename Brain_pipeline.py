@@ -151,8 +151,8 @@ class Pipeline(object):
         patches = np.array(patches).reshape(num_patches*classes, d, h, w) 
         patches_by_channel = np.swapaxes(patches, 0, 1)
         for seq, i in zip(patches_by_channel, xrange(d)):
-            avg = np.mean(seq, dtype = float64)
-            std = np.std(seq, dtype = float64)
+            avg = np.mean(seq, dtype = np.float64)
+            std = np.std(seq, dtype = np.float64)
             patches_by_channel[i] = (patches_by_channel[i] - avg)/std
             mu.append(avg)
             sigma.append(std)
