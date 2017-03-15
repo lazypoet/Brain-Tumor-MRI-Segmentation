@@ -29,6 +29,7 @@ class LeNet:
                 '''
         K.set_image_dim_ordering('th')
         model = Sequential()
+        
                 
         #first set of CONV => CONV => CONV => LReLU => MAXPOOL
         model.add(Convolution2D(64, 3, 3, border_mode="same", input_shape = (d, h, w)))

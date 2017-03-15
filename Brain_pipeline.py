@@ -171,12 +171,15 @@ def test_patches(img , mu = 0, sigma = 1, d = 4, h = 33, w = 33):
     
     #list of patches
     p = []
-    msk = img[0]!=0   #mask using FLAIR channel
+    msk = (img[0]!=0)   #mask using FLAIR channel
     msk = msk[h/2:-(h/2), w/2:(-w/2)]      #crop the mask to conform to the rebuilt image after prediction
+    msk = msk.reshape(-1)
     for i in xrange(len(img)):
         img[i] = (img[i] - mu[i])/sigma[i]
         plist = extract_patches_2d(img[i], (h, w))
-        p.append(plist[msk])              #only take patches with brain mask!=0  
+        if len(plist[np.where(msk)]) == 0:
+            return -1
+        p.append(plist[np.where(msk)])              #only take patches with brain mask!=0
     return np.array(p).swapaxes(0, 1)
     
 

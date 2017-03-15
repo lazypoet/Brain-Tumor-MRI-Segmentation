@@ -18,6 +18,9 @@ def predict_labels(test_images, model, mu, sigma):
     predicted_images = []   # list to maintain predicted labels
     for i in test_images:
         patches = Brain_pipeline.test_patches(i, mu, sigma)
+        if patches == -1:
+            predicted_images.append(np.full((240, 240), 0))
+            continue
         print "running..."
         predicted_slice = model.predict_classes(patches)
         predicted_slice = Brain_pipeline.reconstruct_labels(predicted_slice)
