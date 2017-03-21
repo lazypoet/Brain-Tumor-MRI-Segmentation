@@ -17,7 +17,7 @@ def predict_labels(test_images, model, mu, sigma):
     '''
     predicted_images = []   # list to maintain predicted labels
     for i in test_images:
-        msk = (i[0]!=0.)
+        msk = ((i[0]+i[1]+i[2]+i[3])!=0.)
         patches = Brain_pipeline.test_patches(i, mu, sigma)
         if patches.shape[0] == 0:
             predicted_images.append(np.full((240, 240), 0))

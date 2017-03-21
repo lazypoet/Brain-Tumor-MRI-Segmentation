@@ -186,7 +186,7 @@ def test_patches(img , mu, sigma, d = 4, h = 33, w = 33):
     
     #list of patches
     p = []
-    msk = img[0]!=0.   #mask using FLAIR channel
+    msk = (img[0]+img[1]+img[2]+img[4])!=0.   #mask using FLAIR channel
     msk = msk[16:-16, 16:-16]      #crop the mask to conform to the rebuilt image after prediction
     msk = msk.reshape(-1)
     for i in xrange(len(img)):
