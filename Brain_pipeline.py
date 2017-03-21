@@ -25,18 +25,33 @@ class Pipeline(object):
             
     '''
     
-    def __init__(self, path_train = '', path_test = '' ):
+    def __init__(self, path_train = '', path_test = '' , mx_train = 1000000, mx_tst = 1000000):
         self.path_train = path_train
         self.path_test = path_test
-        self.scans_train, self.scans_test, self.train_im, self.test_im = self.read_scans()
+        self.scans_train, self.scans_test, self.train_im, self.test_im = self.read_scans(mx_train, mx_tst)
         
         
-    def read_scans(self):
+    def read_scans(self, mx_train, mx_test):
        
         scans_train = glob(self.path_train + r'/*.mha')
         scans_test = glob(self.path_test + r'/*.mha')
-        train_im = [sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in scans_train]
-        test_im = [sitk.GetArrayFromImage(sitk.ReadImage(i)) for i in scans_test]
+        train_im = [sitk.GetArrayFromImage(sitk.ReadImage(scans_train[i])) for i in xrange(min(len(scans_train), mx_train))]
+        test_im = [sitk.GetArrayFromImage(sitk.ReadImage(scans_test[i])) for i in xrange(min(len(scans_test), mx_test))]
+        #add min + 1 to train and test images, as the intensities can go negative
+        for i in train_im:
+            for j in xrange(4):
+                msk = (i[j]!=0.)
+                try:
+                    i[j][msk] = i[j][msk] - i[j][msk].min() + 1.
+                except ValueError:
+                    pass
+        for i in test_im:
+            for j in xrange(4):
+                msk = (i[j]!=0.)
+                try:
+                    i[j][msk] = i[j][msk] - i[j][msk].min() + 1.
+                except ValueError:
+                    pass
         return scans_train, scans_test, np.array(train_im), np.array(test_im)
     
     
@@ -159,7 +174,7 @@ class Pipeline(object):
         patches = np.swapaxes(patches_by_channel, 0, 1)
         return patches, np.array(labels).reshape(num_patches*classes), np.array(mu), np.array(sigma)
      
-def test_patches(img , mu = 0, sigma = 1, d = 4, h = 33, w = 33):
+def test_patches(img , mu, sigma, d = 4, h = 33, w = 33):
     ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
     
             INPUT:
@@ -171,18 +186,19 @@ def test_patches(img , mu = 0, sigma = 1, d = 4, h = 33, w = 33):
     
     #list of patches
     p = []
-    msk = (img[0]!=0)   #mask using FLAIR channel
-    msk = msk[h/2:-(h/2), w/2:(-w/2)]      #crop the mask to conform to the rebuilt image after prediction
+    msk = img[0]!=0.   #mask using FLAIR channel
+    msk = msk[16:-16, 16:-16]      #crop the mask to conform to the rebuilt image after prediction
     msk = msk.reshape(-1)
     for i in xrange(len(img)):
-        img[i] = (img[i] - mu[i])/sigma[i]
         plist = extract_patches_2d(img[i], (h, w))
-        if len(plist[np.where(msk)]) == 0:
-            return -1
-        p.append(plist[np.where(msk)])              #only take patches with brain mask!=0
-    return np.array(p).swapaxes(0, 1)
+        plist = (plist - mu[i])/sigma[i]
+        p.append(plist[msk])              #only take patches with brain mask!=0
+    return np.array(p).swapaxes(0,1)
     
 
-def reconstruct_labels(im, msk, pred_list):
+def reconstruct_labels(msk, pred_list):
+    im = np.full((208, 208), 0.)
+    msk = msk[16:-16, 16:-16]
     im[msk] = np.array(pred_list)
+    im = np.pad(im, (16, 16), mode='edge')
     return im    

@@ -11,7 +11,7 @@ def accuracy(pred, orig_label):
     '''  calculates complete accuracy
     INPUT: predicted labels, original labels, each 2D numpy arrays
     OUTPUT: float
-    '''
+    '''    
     acc = len(pred[pred == orig_label])/float(240*240)
     return acc
 
@@ -24,10 +24,9 @@ def DSC_en(pred, orig_label, cn):
     
 def DSC(pred, orig_label):
     ''' Calculates Dice Score Coefficient
-    INPUT: predicted, original labels, and the class number to find DSC of
+    INPUT: predicted, original labels
     OUTPUT: float
     '''
-    
     TP = len(pred[((pred == 1) | (pred == 2) | (pred == 3) | (pred == 4)) & (pred == orig_label)])
     denom = len(pred[(pred == 1) | (pred == 2) | (pred == 3) | (pred == 4)]) + len(orig_label[(orig_label == 1) | (orig_label == 2) | (orig_label == 3) | (orig_label == 4)])
     if denom == 0:
@@ -46,7 +45,6 @@ def DSC_core_tumor(pred, orig_label):
     return 2.*TP/float(denom)
 
 def PPV(pred, orig_label):
-    
     TP = len(pred[((pred == 1) | (pred == 3) | (pred == 4)) & (pred == orig_label)])
     FP = len(pred[((pred == 1) | (pred == 3) | (pred == 4)) & (pred != orig_label)])
     if TP == 0:

@@ -87,7 +87,7 @@ Y_labels = np_utils.to_categorical(Y_labels, 5)
 os.mkdir(r'D:\New folder\Pereira_model_checkpoints')
 checkpointer = ModelCheckpoint(filepath='D:/New folder/Pereira_model_checkpoints/weights.{epoch:02d}-{val_loss:.2f}.hdf5',monitor = 'val_loss', verbose=1)
 #fit model and shuffle training data
-hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, shuffle=True, validation_split=0.01, callbacks = [change_lr, checkpointer])
+hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, shuffle=True, validation_split=0.1, callbacks = [change_lr, checkpointer])
  
 #save model
 sv_pth = 'D:/New Folder/Pereira_model_checkpoints/model_weights'
@@ -103,7 +103,7 @@ with open(m, 'w') as f:
 test_im = x.test_im.swapaxes(0,1)
 gt = test_im[4]
 test_im = test_im[:4].swapaxes(0, 1)
-predicted_images, DSC, acc, DSC_core, PPV = model_test.test_slices(test_im, gt, model, mu, sigma)
+predicted_images, params = model_test.test_slices(test_im[155:160], gt, model, mu, sigma)
 
 
 
