@@ -11,6 +11,8 @@ import json
 import SimpleITK as sitk
 import pylab
 from skimage import color
+from sklearn.utils import shuffle
+from scipy.ndimage.interpolation import rotate
 from keras.optimizers import SGD
 from keras.utils import np_utils
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint
@@ -78,16 +80,22 @@ model.compile(loss = 'categorical_crossentropy', optimizer=opt, metrics = ['accu
 
 
 #load training patches
-X_patches, Y_labels, mu, sigma = x.training_patches(120000)    
+X_patches, Y_labels, mu, sigma = x.training_patches([180000, 67500, 67500, 67500, 67500])
+tmp = rotate(X_patches, 90, (2, 3))
+tmp = np.append(tmp, rotate(X_patches, -90, (2, 3)), axis=0)
+tmp = np.append(tmp, rotate(X_patches, 180, (2, 3)), axis=0)
+X_patches = np.append(X_patches, tmp, axis=0)
+for i in xrange(2):
+    Y_labels = np.append(Y_labels, Y_labels, axis=0)
 # Labels should be in categorical array form 1x5
 Y_labels = np_utils.to_categorical(Y_labels, 5)
-
+X_patches, Y_labels = shuffle(X_patches, Y_labels, random_state=0)
 
 #save model after each epoch
 os.mkdir(r'D:\New folder\Pereira_model_checkpoints')
 checkpointer = ModelCheckpoint(filepath='D:/New folder/Pereira_model_checkpoints/weights.{epoch:02d}-{val_loss:.2f}.hdf5',monitor = 'val_loss', verbose=1)
 #fit model and shuffle training data
-hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, shuffle=True, validation_split=0.1, callbacks = [change_lr, checkpointer])
+hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, validation_split=0.1, callbacks = [change_lr, checkpointer])
  
 #save model
 sv_pth = 'D:/New Folder/Pereira_model_checkpoints/model_weights'
@@ -103,10 +111,7 @@ with open(m, 'w') as f:
 test_im = x.test_im.swapaxes(0,1)
 gt = test_im[4]
 test_im = test_im[:4].swapaxes(0, 1)
-predicted_images, params = model_test.test_slices(test_im[155:160], gt, model, mu, sigma)
-
-
-
+predicted_images, params = model_test.test_slices(test_im, gt, model, mu, sigma)
 
 '''test_pths = zip(*x.pathnames_test)
 #show a segmented slice

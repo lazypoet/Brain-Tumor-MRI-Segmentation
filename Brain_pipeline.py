@@ -160,10 +160,10 @@ class Pipeline(object):
         
         patches, labels, mu, sigma = [], [], [], []
         for idx in xrange(classes):
-            p, l = self.sample_training_patches(num_patches, idx, d, h, w)
+            p, l = self.sample_training_patches(num_patches[idx], idx, d, h, w)
             patches.append(p)
             labels.append(l)
-        patches = np.array(patches).reshape(num_patches*classes, d, h, w) 
+        patches = np.vstack(np.array(patches)) 
         patches_by_channel = np.swapaxes(patches, 0, 1)
         for seq, i in zip(patches_by_channel, xrange(d)):
             avg = np.mean(seq, dtype = np.float64)
@@ -172,7 +172,7 @@ class Pipeline(object):
             mu.append(avg)
             sigma.append(std)
         patches = np.swapaxes(patches_by_channel, 0, 1)
-        return patches, np.array(labels).reshape(num_patches*classes), np.array(mu), np.array(sigma)
+        return patches, np.array(labels).reshape(-1), np.array(mu), np.array(sigma)
      
 def test_patches(img , mu, sigma, d = 4, h = 33, w = 33):
     ''' Creates patches of image. Returns a numpy array of dimension number_of_patches x d.
