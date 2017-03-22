@@ -85,6 +85,7 @@ tmp = rotate(X_patches, 90, (2, 3))
 tmp = np.append(tmp, rotate(X_patches, -90, (2, 3)), axis=0)
 tmp = np.append(tmp, rotate(X_patches, 180, (2, 3)), axis=0)
 X_patches = np.append(X_patches, tmp, axis=0)
+Y_labels = np.hstack(Y_labels)
 for i in xrange(2):
     Y_labels = np.append(Y_labels, Y_labels, axis=0)
 # Labels should be in categorical array form 1x5
@@ -95,7 +96,7 @@ X_patches, Y_labels = shuffle(X_patches, Y_labels, random_state=0)
 os.mkdir(r'D:\New folder\Pereira_model_checkpoints')
 checkpointer = ModelCheckpoint(filepath='D:/New folder/Pereira_model_checkpoints/weights.{epoch:02d}-{val_loss:.2f}.hdf5',monitor = 'val_loss', verbose=1)
 #fit model and shuffle training data
-hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, validation_split=0.1, callbacks = [change_lr, checkpointer])
+hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, validation_split=0.01, callbacks = [change_lr, checkpointer])
  
 #save model
 sv_pth = 'D:/New Folder/Pereira_model_checkpoints/model_weights'
