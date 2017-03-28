@@ -6,6 +6,7 @@ This project started as my final year MTech dissertation in 2016. The initial id
 The work mainly focuses on HGG, but will soon extend to LGG as well. As of now, I've fully replicated the HGG CNN with some minor changes to the procedure given in the paper.
 My current aim is to modify the procedure to improve the results. The modification can be in any part of the pipeline, i.e., preprocessing, CNN or postprocessing.
 
+***This project does not yet contain the scripts for preprocessing and saving the 3d brain images as 2d brain slices, but it has bee done. The file paths assume that this has already been done.***
 # Dataset
 The project uses the [MICCAI BRATS 2015 training dataset](https://www.smir.ch/BRATS/Start2015). The database was split into 66% training and 34% testing data.
 
