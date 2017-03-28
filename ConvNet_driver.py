@@ -61,7 +61,7 @@ def step_decay(epochs):
     if epochs<25:
         lrate = init_rate - (init_rate - fin_rate)/total_epochs * float(epochs)
     else: lrate = 0.00003
-    print 'lrate: {}'.format(lrate)
+    print 'lrate: {}'.format(model.optimizer.lr.get_value())
     return lrate
 
 pth_train = 'D:/New folder/BRATS2015_Training/train_slices/'
@@ -94,9 +94,9 @@ X_patches, Y_labels = shuffle(X_patches, Y_labels, random_state=0)
 
 #save model after each epoch
 os.mkdir(r'D:\New folder\Pereira_model_checkpoints')
-checkpointer = ModelCheckpoint(filepath='D:/New folder/Pereira_model_checkpoints/weights.{epoch:02d}-{val_loss:.2f}.hdf5',monitor = 'val_loss', verbose=1)
+checkpointer = ModelCheckpoint(filepath='D:/New folder/Pereira_model_checkpoints/weights.{epoch:02d}-{val_loss:.2f}.keras2.hdf5',monitor = 'val_loss', verbose=1)
 #fit model and shuffle training data
-hist = model.fit(X_patches, Y_labels, nb_epoch=25, batch_size=128, verbose=1, validation_split=0.01, callbacks = [change_lr, checkpointer])
+hist = model.fit(X_patches[:200000], Y_labels[:200000], nb_epoch=25, batch_size=128, verbose=1, validation_split=0.1, callbacks = [change_lr, checkpointer])
  
 #save model
 sv_pth = 'D:/New Folder/Pereira_model_checkpoints/model_weights'
@@ -112,7 +112,7 @@ with open(m, 'w') as f:
 test_im = x.test_im.swapaxes(0,1)
 gt = test_im[4]
 test_im = test_im[:4].swapaxes(0, 1)
-predicted_images, params = model_test.test_slices(test_im, gt, model, mu, sigma)
+predicted_images, params = model_test.test_slices(test_im[158:159], gt[158:159], model, mu, sigma)
 
 '''test_pths = zip(*x.pathnames_test)
 #show a segmented slice

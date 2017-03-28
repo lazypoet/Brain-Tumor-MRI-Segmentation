@@ -91,7 +91,7 @@ class Pipeline(object):
         '''
         
         #find patches for training
-        patches, labels = [], np.full(num_patches, fill_value = class_nm,  dtype = 'float')
+        patches, labels = [], np.full(num_patches, fill_value = class_nm,  dtype = np.int32)
         count = 0
         # convert gt_im to 1D and save shape
         gt_im = np.swapaxes(self.train_im, 0, 1)[4]   #swap axes to make axis 0 represent the modality and axis 1 represent the slice. take the ground truth
@@ -126,7 +126,6 @@ class Pipeline(object):
             slice_idx = ind[0]
             #load the slice from the label
             l = gt_im[slice_idx]
-           
             # the centre pixel and its coordinates
             p = ind[1:]
             #construct the patch by defining the coordinates
@@ -166,8 +165,8 @@ class Pipeline(object):
         patches = np.vstack(np.array(patches)) 
         patches_by_channel = np.swapaxes(patches, 0, 1)
         for seq, i in zip(patches_by_channel, xrange(d)):
-            avg = np.mean(seq, dtype = np.float64)
-            std = np.std(seq, dtype = np.float64)
+            avg = np.mean(seq)
+            std = np.std(seq)
             patches_by_channel[i] = (patches_by_channel[i] - avg)/std
             mu.append(avg)
             sigma.append(std)
