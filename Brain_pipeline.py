@@ -37,21 +37,6 @@ class Pipeline(object):
         scans_test = glob(self.path_test + r'/*.mha')
         train_im = [sitk.GetArrayFromImage(sitk.ReadImage(scans_train[i])) for i in xrange(min(len(scans_train), mx_train))]
         test_im = [sitk.GetArrayFromImage(sitk.ReadImage(scans_test[i])) for i in xrange(min(len(scans_test), mx_test))]
-        #add min + 1 to train and test images, as the intensities can go negative
-        for i in train_im:
-            for j in xrange(4):
-                msk = (i[j]!=0.)
-                try:
-                    i[j][msk] = i[j][msk] - i[j][msk].min() + 1.
-                except ValueError:
-                    pass
-        for i in test_im:
-            for j in xrange(4):
-                msk = (i[j]!=0.)
-                try:
-                    i[j][msk] = i[j][msk] - i[j][msk].min() + 1.
-                except ValueError:
-                    pass
         return scans_train, scans_test, np.array(train_im), np.array(test_im)
     
     

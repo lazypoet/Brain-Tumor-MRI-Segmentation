@@ -28,20 +28,23 @@ def predict_labels(test_images, model, mu, sigma):
         predicted_images.append(predicted_slice)
     return np.array(predicted_images)
     
-def get_metrics(test_images, gt):
+def get_metrics(test_images, gt, msk):
     DSC = []
     acc = []
     DSC_core = []
     PPV = []
     for i, j in zip(test_images, gt):
         DSC.append(Metrics.DSC(i, j))
-        acc.append(Metrics.accuracy(i, j))
+        acc.append(Metrics.accuracy(i, j, msk))
         DSC_core.append(Metrics.DSC_core_tumor(i, j))
         PPV.append(Metrics.PPV(i, j))
     return DSC, acc, DSC_core, PPV
 
 def test_slices(test_images, gt, model, mu=0, sigma=1):
     pred = predict_labels(test_images, model, mu, sigma)
-    return pred, get_metrics(pred, gt)
+    msk = []
+    for i in test_images:
+        msk.append((i[0]+i[1]+i[2]+i[3])!=0.)
+    return pred, get_metrics(pred, gt, msk)
 
     

@@ -7,17 +7,17 @@ Created on Thu Nov 24 22:50:27 2016
 
 import numpy as np
 
-def accuracy(pred, orig_label):
+def accuracy(pred, orig_label, msk):
     '''  calculates complete accuracy
     INPUT: predicted labels, original labels, each 2D numpy arrays
     OUTPUT: float
     '''    
-    acc = len(pred[pred == orig_label])/float(240*240)
+    acc = len(pred[(pred == orig_label) & msk])/float(len(msk[msk]))
     return acc
 
-def DSC_en(pred, orig_label, cn):
-    TP = len(pred[(pred == cn) & (pred == orig_label)])
-    denom = len(pred[pred == cn]) + len (orig_label[orig_label == cn])
+def DSC_en(pred, orig_label, cn, msk):
+    TP = len(pred[(pred == cn) & (pred == orig_label) & msk])
+    denom = len(pred[(pred == cn) & msk]) + len (orig_label[(orig_label == cn) & msk])
     if denom == 0:
         return -1
     return 2.*TP/float(denom)
